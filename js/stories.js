@@ -52,28 +52,31 @@ function putStoriesOnPage() {
         const removeButton = $("<button>");
         removeButton.text("Delete");
         removeButton.on("click", function () {
-          const id = $(this).parent().attr('id');
+          const id = $(this).parent().attr("id");
           removeStory(id);
-        })
+        });
         $story.append(removeButton);
       }
     }
     $allStoriesList.append($story);
     if (currentUser) {
-      const favorites = currentUser.favorites
+      const favorites = currentUser.favorites;
       for (let favoriteStory of favorites) {
         if (favoriteStory.storyId === story.storyId) {
-          $(`#${story.storyId}`).find('input[type="checkbox"]').prop('checked', true)
-        };
+          $(`#${story.storyId}`)
+            .find('input[type="checkbox"]')
+            .prop("checked", true);
+        }
       }
     }
   }
   $allStoriesList.show();
 }
-
+/////////////////////////////////////////////////////////
 async function submitNewStory() {
   try {
     console.debug("SubmitnewStory");
+    // Make newStory opj to pass to the add story method
     const newStory = {
       title: $("#submit-title").val(),
       author: $("#submit-author").val(),
@@ -83,12 +86,11 @@ async function submitNewStory() {
     await storyList.addStory(currentUser, newStory).then(function () {
       putStoriesOnPage();
       $submitForm.hide();
-    })
+    });
   } catch (error) {
     console.error("An error occurred while submitting the story:", error);
   }
 }
-
 
 $submitForm.on("submit", function () {
   submitNewStory();
@@ -97,75 +99,79 @@ $submitForm.on("submit", function () {
 async function removeStory(id) {
   try {
     await axios
-      .delete(`https://hack-or-snooze-v3.herokuapp.com/stories/${id}`,
-        {data: { token: currentUser.loginToken }})
+      // Delete request to the api to delete to story of id
+      .delete(`https://hack-or-snooze-v3.herokuapp.com/stories/${id}`, {
+        data: { token: currentUser.loginToken },
+      })
       .then(putStoriesOnPage);
+    // remove the li with an id of id
     $body.find(`#${id}`).remove();
-  }
-  catch (error) {
-    console.error('An error occurred while deleting the story:', error)
+  } catch (error) {
+    console.error("An error occurred while deleting the story:", error);
   }
 }
-
-$body.on('change', 'input[type="checkbox"]', function () {
+// favorite checkbox event handler
+$body.on("change", 'input[type="checkbox"]', function () {
+  // if no logged on user set checkbox back to false and then do nothing
   if (!currentUser) {
-    alert('Please log in to add this to your favorites')
+    alert("Please log in to add this to your favorites");
     $(this).prop("checked", false);
     return;
   }
-  const id = $(this).parent().attr('id')
-  if ($(this).is(':checked')) {
-    currentUser.addFavorite(id)
-  } else {currentUser.removeFavorite(id);}
-})
+  // get the story id
+  const id = $(this).parent().attr("id");
 
-
-
+  // if checked add story to favorites if unchecked remove from favorites
+  if ($(this).is(":checked")) {
+    currentUser.addFavorite(id);
+  } else {
+    currentUser.removeFavorite(id);
+  }
+});
 
 async function putFavoriteStoriesOnPage() {
+  // empty stories and get favorite storys
   $allStoriesList.empty();
   let favoriteStories = currentUser.favorites;
 
+  // for each story id get data from the api
   for (let story of favoriteStories) {
     try {
-      const response = await axios.get(
-        `https://hack-or-snooze-v3.herokuapp.com/stories/${story.storyId}`
-      ).then(function (response) {
-        const responseData = response.data.story;
-        const newFavoriteStory = new Story({
-          storyId: responseData.storyId,
-          title: responseData.title,
-          author: responseData.author,
-          url: responseData.url,
-          username: responseData.username,
-          createdAt: responseData.createdAt
-        });
-        console.log(newFavoriteStory)
-  
-        const $story = generateStoryMarkup(newFavoriteStory);
-  
-        if (currentUser && responseData.username === currentUser.username) {
-          const removeButton = $("<button>");
-          removeButton.text("Delete");
-          removeButton.on("click", function () {
-            const id = $(this).parent().attr("id");
-            removeStory(id);
+      const response = await axios
+        .get(`https://hack-or-snooze-v3.herokuapp.com/stories/${story.storyId}`)
+        .then(function (response) {
+          const responseData = response.data.story;
+
+          // make new instance of story out of it
+          const newFavoriteStory = new Story({
+            storyId: responseData.storyId,
+            title: responseData.title,
+            author: responseData.author,
+            url: responseData.url,
+            username: responseData.username,
+            createdAt: responseData.createdAt,
           });
-          $story.append(removeButton);
-        }
-  
-        $allStoriesList.append($story);
-  
-        const favorites = currentUser.favorites;
-        for (let favoriteStory of favorites) {
-          if (favoriteStory.storyId === story.storyId) {
-            $(`#${story.storyId}`)
-              .find('input[type="checkbox"]')
-              .prop("checked", true);
+          // generate html for story
+          const $story = generateStoryMarkup(newFavoriteStory);
+          // check for current user and that the current user owns this story
+          if (currentUser && responseData.username === currentUser.username) {
+            // add a delete button for story
+            const removeButton = $("<button>");
+            removeButton.text("Delete");
+            // add event handler for button
+            removeButton.on("click", function () {
+              const id = $(this).parent().attr("id");
+              removeStory(id);
+            });
+            $story.append(removeButton);
           }
-        }
-        
-      });
+
+          $allStoriesList.append($story);
+
+          $(`#${story.storyId}`)
+            .find('input[type="checkbox"]')
+            .prop("checked", true);
+        });
     } catch (error) {
       console.error("Error retrieving favorite stories:", error);
     }

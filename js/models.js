@@ -7,7 +7,6 @@ const BASE_URL = "https://hack-or-snooze-v3.herokuapp.com";
  */
 
 class Story {
-
   /** Make instance of Story from data object about story:
    *   - {title, author, url, username, storyId, createdAt}
    */
@@ -28,7 +27,6 @@ class Story {
     return "hostname.com";
   }
 }
-
 
 /******************************************************************************
  * List of Story instances: used by UI to show story lists in DOM.
@@ -60,7 +58,7 @@ class StoryList {
     });
 
     // turn plain old story objects from API into instances of Story class
-    const stories = response.data.stories.map(story => new Story(story));
+    const stories = response.data.stories.map((story) => new Story(story));
 
     // build an instance of our own class using the new array of stories
     return new StoryList(stories);
@@ -72,33 +70,34 @@ class StoryList {
    *
    * Returns the new Story instance
    */
-
-   async addStory(user, newStory) {
+  ///////////////////////////////////////////////////
+  async addStory(user, newStory) {
+    // make story obj to send to api
     const apiStory = {
-    "token": user.loginToken,
-    "story": {
-      "author": newStory.author,
-        "title": newStory.title,
-        "url": newStory.url
-    }
-    }
+      token: user.loginToken,
+      story: {
+        author: newStory.author,
+        title: newStory.title,
+        url: newStory.url,
+      },
+    };
+    // send story to api
     const response = await axios.post(
       "https://hack-or-snooze-v3.herokuapp.com/stories",
       apiStory
     );
-     const story = new Story({
-       storyId: response.data.story.storyId,
-       title: newStory.title,
-       author: newStory.author,
-       url: newStory.url,
-       username: user.username,
-       user: user.createdAt
-     });
-     console.log(story)
-    return story
+    // make new instance of story with id returned from api and currentuser data
+    const story = new Story({
+      storyId: response.data.story.storyId,
+      title: newStory.title,
+      author: newStory.author,
+      url: newStory.url,
+      username: user.username,
+      user: user.createdAt,
+    });
+    return story;
   }
 }
-
 
 /******************************************************************************
  * User: a user in the system (only used to represent the current user)
@@ -110,21 +109,17 @@ class User {
    *   - token
    */
 
-  constructor({
-                username,
-                name,
-                createdAt,
-                favorites = [],
-                ownStories = []
-              },
-              token) {
+  constructor(
+    { username, name, createdAt, favorites = [], ownStories = [] },
+    token
+  ) {
     this.username = username;
     this.name = name;
     this.createdAt = createdAt;
 
     // instantiate Story instances for the user's favorites and ownStories
-    this.favorites = favorites.map(s => new Story(s));
-    this.ownStories = ownStories.map(s => new Story(s));
+    this.favorites = favorites.map((s) => new Story(s));
+    this.ownStories = ownStories.map((s) => new Story(s));
 
     // store the login token on the user so it's easy to find for API calls.
     this.loginToken = token;
@@ -144,7 +139,7 @@ class User {
       data: { user: { username, password, name } },
     });
 
-    let { user } = response.data
+    let { user } = response.data;
 
     return new User(
       {
@@ -152,7 +147,7 @@ class User {
         name: user.name,
         createdAt: user.createdAt,
         favorites: user.favorites,
-        ownStories: user.stories
+        ownStories: user.stories,
       },
       response.data.token
     );
@@ -179,7 +174,7 @@ class User {
         name: user.name,
         createdAt: user.createdAt,
         favorites: user.favorites,
-        ownStories: user.stories
+        ownStories: user.stories,
       },
       response.data.token
     );
@@ -205,7 +200,7 @@ class User {
           name: user.name,
           createdAt: user.createdAt,
           favorites: user.favorites,
-          ownStories: user.stories
+          ownStories: user.stories,
         },
         token
       );
@@ -214,21 +209,25 @@ class User {
       return null;
     }
   }
+  /////////////////////////////////////////////////////////////////
   async addFavorite(id) {
+    // post request to api to add story to favorites
     await axios
       .post(
         `https://hack-or-snooze-v3.herokuapp.com/users/${currentUser.username}/favorites/${id}`,
         { token: currentUser.loginToken }
       )
+      // check for remembered user to update currentuser
       .then(checkForRememberedUser);
   }
   async removeFavorite(id) {
+    // delete request to api to remove from favorites
     await axios
       .delete(
         `https://hack-or-snooze-v3.herokuapp.com/users/${currentUser.username}/favorites/${id}`,
         { data: { token: currentUser.loginToken } }
       )
+      // check for remembered user to update currentuser
       .then(checkForRememberedUser);
   }
 }
-// c5126246-90e6-4ea9-91f6-875a905632d1

@@ -38,18 +38,20 @@ function updateNavOnLogin() {
   $navUserProfile.text(`${currentUser.username}`).show();
 }
 
+// hide page and show submit form
 function navSubmitStory() {
   hidePageComponents();
   $submitForm.show();
   console.debug("navSubmitStory");
 }
+// click handler for navSubmitStories
+$submit.on("click", navSubmitStory);
 
-$submit.on('click', navSubmitStory)
-
+// hide page and show favorite stories
 function navFavoriteStories() {
   hidePageComponents();
-  putFavoriteStoriesOnPage()
+  putFavoriteStoriesOnPage();
   $submitForm.hide();
 }
-
-$navFavorite.on('click',navFavoriteStories)
+// click handler for navFavoriteStories
+$navFavorite.on("click", navFavoriteStories);

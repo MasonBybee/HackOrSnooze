@@ -45,9 +45,9 @@ async function signup(evt) {
     saveUserCredentialsInLocalStorage();
     updateUIOnUserLogin();
     $signupForm.trigger("reset");
-
+  } catch (error) {
+    console.error("Username already taken", error);
   }
-  catch(error){console.error('Username already taken',error)}
 }
 
 $signupForm.on("submit", signup);
@@ -80,7 +80,7 @@ async function checkForRememberedUser() {
   if (!token || !username) return false;
 
   // try to log in with these credentials (will be null if login failed)
-  currentUser = await User.loginViaStoredCredentials(token, username,);
+  currentUser = await User.loginViaStoredCredentials(token, username);
 }
 
 /** Sync current user information to localStorage.
